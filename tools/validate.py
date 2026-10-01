@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import urllib.parse
 from pathlib import Path
 
 FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -14,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools.buildroot_pin import parse as parse_buildroot_pin
 from tools.check_suppressed_tests import main as check_suppressed_tests
+from tools.bootstrap_upstream_sources import FEDORA_HOSTS
 from tools.package_inventory import inventory
 
 
@@ -99,6 +101,78 @@ def check_provenance(path: Path, data: dict) -> None:
                 raise SystemExit(f"rawhide import must carry a full {key} SHA: {path}")
 
 
+def fedora_primary_sources(path: Path) -> list[str]:
+    """Names in the source lock whose primary `url` is Fedora infrastructure.
+
+    `tools/source_pipeline.py` fetches the primary `url` directly, so an entry
+    pointing at Fedora takes its payload from the lookaside rather than from
+    the project's own release -- which is the one thing AGENTS.md and
+    docs/targeting-hummingbird.md say the factory does not do. The SHA-512 lock
+    still holds, so this is provenance, not integrity: Fedora belongs in
+    `fallback_urls`, which source_pipeline already consults after an upstream
+    transport failure, not in the primary position.
+    """
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        raise SystemExit(f"invalid source lock: {path}")
+    offenders = []
+    for entry in data.get("packages", []):
+        if not isinstance(entry, dict):
+            continue
+        host = urllib.parse.urlparse(entry.get("url") or "").hostname or ""
+        if host in FEDORA_HOSTS or host.endswith(".fedoraproject.org"):
+            offenders.append(entry.get("name") or entry.get("filename") or "<unnamed>")
+    return sorted(offenders)
+
+
+def read_fedora_primary_baseline(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+    names = []
+    for line in path.read_text().splitlines():
+        stripped = line.split("#", 1)[0].strip()
+        if stripped:
+            names.append(stripped)
+    return sorted(names)
+
+
+def check_fedora_primary_sources(root: Path) -> None:
+    """A ratchet: the Fedora-primary set may shrink, never grow.
+
+    Re-pointing every entry at its upstream release is a long bulk edit
+    (utah-packages#42); until it finishes, the gap has to stop widening, so the
+    packages still on a Fedora primary URL are listed in the baseline and
+    anything outside it fails. The baseline is also checked for staleness --
+    a package re-pinned upstream but left in the file would hold a slot open
+    for the gap to reopen under the same name.
+    """
+    offenders = fedora_primary_sources(root / "config" / "upstream-sources.json")
+    baseline_path = root / "config" / "fedora-primary-sources.txt"
+    baseline = read_fedora_primary_baseline(baseline_path)
+    added = sorted(set(offenders) - set(baseline))
+    removed = sorted(set(baseline) - set(offenders))
+    if added:
+        raise SystemExit(
+            "source lock takes its payload from Fedora, not upstream: "
+            f"{', '.join(added)}\n"
+            "Point the entry's `url` at the project's own release and keep the "
+            "Fedora URL in `fallback_urls`, which source_pipeline.py already "
+            "uses after an upstream transport failure. Where no upstream "
+            "artifact exists verbatim, add a generator in "
+            "tools/generated_sources.py instead."
+        )
+    if removed:
+        raise SystemExit(
+            f"{baseline_path.name} lists packages that no longer use a Fedora "
+            f"primary URL: {', '.join(removed)}\n"
+            "Delete those lines. The list only shrinks; a stale entry holds the "
+            "slot open for the same package to regress unnoticed."
+        )
+
+
 def main(root: Path = Path(".")) -> int:
     packages_dir = root / "packages"
     if not packages_dir.is_dir():
@@ -117,6 +191,9 @@ def main(root: Path = Path(".")) -> int:
     # Before the recipe tally, so a package that is merely missing a Packit
     # entry cannot hide a buildroot that drifted from its lock.
     validate_buildroots(root / "config" / "buildroot-lock.json")
+    # Before the tally too: a lock that builds from the lookaside is a
+    # provenance failure whether or not every recipe is otherwise accounted for.
+    check_fedora_primary_sources(root)
     records = inventory(root)
     missing_locks = sorted(record.name for record in records if not record.source_locked)
     missing_packit = sorted(record.name for record in records if not record.packit_configured)
