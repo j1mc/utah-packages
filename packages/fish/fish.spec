@@ -8,7 +8,7 @@
 %global rust_pcre2_fish_tag 0.2.9-utf32
 
 Name:           fish
-Version:        %{version_base}%{?version_pre:~%{version_pre}}%{?gitnum:^git%{gitnum}.%{githashshort}}
+Version:        4.9.3
 Release:        %autorelease
 Summary:        Friendly interactive shell
 # Non-code licenses, see also doc_src/license.rst

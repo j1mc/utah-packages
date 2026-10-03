@@ -2,8 +2,8 @@
 # RPM repository.
 
 Name:           libmtp
-Version:        1.1.22
-Release:        4%{?dist}
+Version:        1.1.23
+Release:        1%{?dist}
 Summary:        Software library for MTP media players
 URL:            http://libmtp.sourceforge.net/
 
