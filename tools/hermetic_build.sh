@@ -157,7 +157,7 @@ materialize() {
   # it cannot read file:// URLs, which is where the earlier stages and the
   # published factory live. Split the lock: the network half goes through
   # it, the local half is copied, and one repository is made of both.
-  rm -rf "$H/repo"
+  rm -rf "$H/repo" "$H/fetch.log"
   python3 - "$H/lock/buildroot_lock.json" "$H/lock/remote.json" "$H/local.txt" <<'PY'
 import json, sys
 from urllib.parse import unquote, urlparse
@@ -170,11 +170,25 @@ json.dump(lock, open(sys.argv[2], "w"))
 open(sys.argv[3], "w").write("".join(unquote(urlparse(r["url"]).path) + "\n" for r in local))
 print(f"{len(remote)} to download, {len(local)} already local")
 PY
+  # The whole fetch output is kept at $H/fetch.log while the job log
+  # carries its last 40 lines: `tail -3` hid the exception behind the
+  # final ERROR line, so samba's three lock-fetch failures in run
+  # 38103251304 (#436) could not be told apart as outage, wrong URL, or
+  # flake. Attempts append; materialize starts the file fresh. On a final
+  # failure the log is copied into the failed-build evidence, which
+  # build-stage.yml already uploads -- no workflow change needed.
   fetch_remote() {
-    mock-hermetic-repo --lockfile "$H/lock/remote.json" --output-repo "$H/repo" 2>&1 | tail -3
+    mock-hermetic-repo --lockfile "$H/lock/remote.json" --output-repo "$H/repo" 2>&1 \
+      | tee -a "$H/fetch.log" | tail -40
   }
   clean_repo() { rm -rf "$H/repo"; }
-  online "lock fetch" clean_repo fetch_remote
+  online "lock fetch" clean_repo fetch_remote || {
+    status=$?
+    mkdir -p "/work/reports/check/$PACKAGE"
+    cp "$H/fetch.log" "/work/reports/check/$PACKAGE/" 2>/dev/null || true
+    chmod -R a+rX /work/reports/check || true
+    return "$status"
+  }
   while read -r path; do
     [ -n "$path" ] || continue
     cp "$path" "$H/repo/"

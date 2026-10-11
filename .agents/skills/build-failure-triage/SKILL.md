@@ -38,6 +38,16 @@ to Fedora, or to the build environment.
 the runner's cleanup, which is worthless. **Ask for 40-70 lines minimum.** The
 real error is typically 20-60 lines above the summary.
 
+A `lock fetch` failure keeps its own evidence: `fetch_remote` tees the whole
+`mock-hermetic-repo` output to `work/hermetic/fetch.log`, and on a final
+failure the script copies it into `work/reports/check/<pkg>/`, which the
+`check-s<stage>-<pkg>` evidence artifact already uploads -- while the job log
+carries only the last 40 lines. When the job log shows nothing but DEBUG
+lines and `RPM deps downloading failed`, download that artifact and grep the
+log -- the exception (which URL, what error) is there. Before that log
+existed, samba's three lock-fetch failures in run 38103251304 (#436) could
+not be told apart as outage, wrong URL, or flake.
+
 Some jobs defeat tailing outright. A repository with git submodules emits a
 couple of hundred lines of credential cleanup after the build, so on Utah a
 125-line tail still had not reached the failure. When a tail comes back as

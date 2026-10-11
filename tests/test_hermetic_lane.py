@@ -123,6 +123,24 @@ class HermeticLaneTests(unittest.TestCase):
         self.assertIn("mock.cfg.sha256", upload["with"]["path"])
         self.assertIn("always()", upload["if"])
 
+    def test_a_lock_fetch_failure_keeps_its_exception(self) -> None:
+        # Run 38103251304 (#436): samba's fetch failed three times and the
+        # job log kept only `tail -3` -- two DEBUG lines and the ERROR line --
+        # so the exception was untriageable. The full output is kept at
+        # work/hermetic/fetch.log and, on a final failure, copied into the
+        # failed-build evidence build-stage.yml already uploads, while the
+        # job log carries the last 40 lines, enough for the traceback
+        # (Rule 0). Deliberately no workflow change: the token pushing this
+        # cannot grant itself one, and the evidence upload already covers it.
+        script = SCRIPT.read_text()
+        self.assertIn('tee -a "$H/fetch.log"', script)
+        self.assertIn("| tail -40", script)
+        self.assertNotIn("| tail -3", script)
+        self.assertIn('rm -rf "$H/repo" "$H/fetch.log"', script)
+        self.assertIn('cp "$H/fetch.log" "/work/reports/check/$PACKAGE/"', script)
+        evidence = steps()[index("Upload the evidence from a failed %check")]
+        self.assertIn("work/reports/check/**", evidence["with"]["path"])
+
     def test_the_bootstrap_image_is_the_pinned_build_root(self) -> None:
         run = steps()[index(self.LOCK)]["run"]
         self.assertIn("config/buildroot-image", run)
