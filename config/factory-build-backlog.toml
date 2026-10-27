@@ -429,8 +429,8 @@ packages = [
     { name = "hypervkvpd", pr = 607 },
     { name = "hypervvssd", pr = 607 },
     # Recipe coverage only; build/publication/runtime proof stays on #489.
-    { name = "python3-pexpect" },
-    { name = "python3-ptyprocess" },
+    { name = "python3-pexpect", pr = 684 },
+    { name = "python3-ptyprocess", pr = 684 },
     { name = "python3-dateutil", pr = 613 },
     { name = "python3-six", pr = 613 },
     # Chromaprint recipe coverage only; publication and runtime proof remain in #487.
