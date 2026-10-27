@@ -7,8 +7,8 @@
     },
     "dev-tools": {
       "already_recipe": 1,
-      "pending": 90,
-      "total": 91
+      "pending": 88,
+      "total": 89
     },
     "fonts-i18n": {
       "pending": 29,
@@ -509,16 +509,6 @@
     {
       "area": "dev-tools",
       "name": "python3-more-itertools",
-      "state": "pending"
-    },
-    {
-      "area": "dev-tools",
-      "name": "python3-pexpect",
-      "state": "pending"
-    },
-    {
-      "area": "dev-tools",
-      "name": "python3-ptyprocess",
       "state": "pending"
     },
     {
@@ -1611,11 +1601,11 @@
   "states": {
     "already_recipe": 28,
     "manifest_wants": 1,
-    "pending": 282
+    "pending": 280
   },
   "totals": {
-    "backlog": 311,
-    "resolved": 216,
+    "backlog": 309,
+    "resolved": 218,
     "wontfix": 24
   }
 }
