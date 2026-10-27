@@ -54,21 +54,30 @@ Order is significant: the strongest signal wins. Reordering the
 
 ## Closing a backlog gap
 
+For a partial batch PR, use `Refs #<issue>` in the PR description. Reserve
+GitHub closing keywords for a PR that satisfies the entire batch issue's
+close condition, including required build and runtime evidence or linked
+blocking decisions for every named output. Before pushing a review fix,
+check the entire PR description for closing keywords: an automatically added
+footer can contradict an earlier partial-progress statement.
+
 Two edits — never one, never none:
 
 - Remove the entry from `[areas.<area>].packages`.
 - Add the entry to either:
-  - `[resolved].packages` (`{ name = "<n>", commit = "<sha>", pr = <n> }`) —
+  - `[resolved].packages` (`{ name = "<n>", commit = "<sha>", pr = <n>, published_run = <run-id>, published_nevra = "<n>-<e>:<v>-<r>.<arch>" }`) —
     a recipe was imported. `commit` and `pr` are both informational; the
     closing record is the import PR (the one this two-edit move ships in)
-    and `tools/factory_build_backlog.py:356-357` only reads `entry["name"]`.
+    and `_catalog_totals` in `tools/factory_build_backlog.py` only reads
+    `entry["name"]` from the resolved records.
     Do not pre-fill `commit` with a SHA from a future commit that does not
     exist yet at PR-open time, and do not let a rebase or squash-merge
     invalidate it. The `pr` field links the entry to its closing PR for
     cross-referencing.
   - `[wontfix].packages` (`{ name = "<n>", reason = "..." }`) — Utah decided
     not to carry it, with a link to the decision issue. `reason` is also
-    informational and not validated.
+    informational and not validated. Catalog comments should describe the
+    structure rather than current list occupancy, since decisions accumulate.
 
 `[resolved]` is the only closing record. A recipe import PR makes this
 two-edit move in the same PR; `already_recipe` is the auditor's observation
@@ -109,6 +118,25 @@ name to a closing record preserves the digest. The baseline was verified
 against the pinned gist's `nowhere-551.txt`; changing it requires a new audit. The auditor
 itself fails when the catalog totals do not reconcile with the report.
 
+### Font parity decisions do not waive input methods
+
+Before importing a font from the `fonts-i18n` area, check the
+[Utah maintainer decision](https://github.com/projectbluefin/utah/issues/393#issuecomment-5920428811)
+rejecting bulk font parity. Move a font requested only for that parity to
+`[wontfix]` with the decision URL; a deliberate individual addition needs
+its own accepted proposal. This includes all audited binary names in a font
+family, not just the source-package name (for example, JetBrains Mono's
+regular, all-fonts and non-ligature outputs).
+
+That decision explicitly distinguishes IBus input-method engines from fonts.
+Do not use it to waive engines, language data, dictionaries, or their required
+libraries merely because they share the `fonts-i18n` area. Those names are not
+accepted by that decision either: they need their own accepted proposal before
+implementation, and stay pending until that proposal plus recipe, dependency
+and publication evidence exist.
+A mixed batch can therefore be reconciled in a partial PR: name every remaining
+output and keep the tracking issue open. Use `Refs #<issue>` in the PR
+description and remove any automatic closing keywords for that batch issue.
 ### Reconcile sibling library outputs
 
 Check every binary from an imported source family when reconciling a batch.
@@ -238,6 +266,25 @@ libcollection, libbasicobjects, libpath_utils and libref_array into
 `libini_config` through `Obsoletes:`), the retired binary names still leave the
 backlog with the import.
 
+### Optional changelog viewer
+
+Utah's plain-Markdown fallback for `changelogs` (projectbluefin/utah#394)
+is resilience, not a decision to exclude `glow` from the factory backlog.
+The `glow` source builds the binary of the same name; use its Fedora
+`go-vendor-tools.toml` and SHA-512-pinned supplementary vendor archive via
+`source_pipeline.bundled_sources`, as for `gum`. Source0 still comes directly
+from the upstream release. Keep a noninteractive stdin-rendering smoke check
+in `%check`, alongside the version, vendor-license and upstream test checks.
+A recipe closing record does not establish publication or runtime closure;
+record the lane result and published repository identity separately.
+### Flex binary names and smoke test
+
+The `flex` source recipe builds `flex`, `libfl2`, `libfl-devel`, and
+`libfl-static`; `flex-devel` is a compatibility provide, not a second source
+recipe. The command requires `m4` at runtime. After the permitted-repository
+transaction succeeds, verify more than `flex --version`: generate a scanner
+from a minimal rule file, compile its C output, and feed it a matching token.
+The imported recipe also retains its upstream `%check` suite.
 ### Compression measurements on Btrfs
 
 The `compsize` source produces the binary of the same name. Its upstream
@@ -283,6 +330,17 @@ not identical compressed bytes. Lock the upstream tag's own SHA-512, adjust
 `Source0` and `%autosetup` to its filename and directory, and preserve the
 Rawhide patches and test configuration. A successful source-tree comparison
 is not a package build or runtime test.
+
+### Audio fingerprinting library
+
+The `chromaprint` source recipe produces `libchromaprint` and uses
+`fftw-devel`; check Hummingbird's repodata before adding an FFTW recipe.
+The default tools subpackage also BuildRequires `ffmpeg-free-devel`. The
+factory's ffmpeg disables its chromaprint integration to break the reverse
+edge; importing this recipe does not enable that integration or prove either
+package builds. Keep the existing cycle break until a separately validated
+build plan addresses it. Verify published binary dependencies and exercise
+fingerprinting before claiming runtime closure.
 
 ### BSD compatibility library closure
 
@@ -341,6 +399,44 @@ After a recipe PR lands, regenerate `reports/factory-build-backlog.json`; the in
 
 After combining recipe inventories during a rebase, also rerun `python3 tools/render_packit_config.py --write` and `python3 tools/render_architecture_counts.py --write` before `just check` to reconcile derived package lists and counts.
 After a recipe PR lands, regenerate `reports/factory-build-backlog.json`; the inventory-driven gate deliberately rejects a snapshot made before that import. Refresh it together with recipe and Packit inventory changes when preparing concurrent PRs.
+
+When concurrent disposition PRs conflict during rebase, retain each distinct
+`[resolved]` and `[wontfix]` record in the catalog, then regenerate the report
+with `python3 tools/factory_build_backlog.py`. Do not choose one side of the
+generated JSON: it must reflect both sets of catalog changes. Verify the result
+with `python3 tools/factory_build_backlog.py --check` before continuing the rebase.
+
+### Reconciling published batches
+
+A failed aggregate rebuild can still publish successful packages and retain older
+RPMs from its seed repository. Reconcile each binary against the published
+repodata and digest, rather than treating the run conclusion or a newer failed
+rebuild as evidence that it is absent. Keep publication evidence separate from
+current build health and consumer validation. An approved consumer waiver also
+applies to a session subpackage whose source would reintroduce excluded shell
+extensions; link that decision in its `[wontfix]` record.
+
+`published_run` / `published_nevra` are optional and also informational (the
+tool reads only `name`); set them from the publication run's repodata when
+reconciling a published batch. Record any known newer failed rebuilds by package
+name and run in the catalog comments so publication evidence does not hide
+current build health.
+### X11 resource library imports
+
+The audited `libXres` binary is the main output of source recipe `libXres`;
+its SONAME uses different capitalization (`libXRes.so.1`). The same recipe
+emits `libXres-devel`, with the `xres.pc` pkg-config module. Do not import
+another recipe for the SONAME or the development output. The release archive
+comes from X.Org's `pub/individual/lib` directory; its `sources` SHA-512 must
+match the upstream download. Snapshot-only `Source1` and `Source2` entries
+are behind the disabled `gitdate` condition and are not release downloads.
+
+For runtime acceptance, install the built library using only Hummingbird
+plus the factory and exercise `XResQueryExtension` against a running X11
+server. Loading `libXRes.so.1` alone checks linkage, not server interaction.
+This import PR moves `libXres` from its area to `[resolved]`. That entry
+records the recipe import only; it does not claim the batch issue's build and
+runtime acceptance, which stays tracked on the issue.
 When rebasing a recipe PR, resolve conflicts in this generated report by rerunning
 `python3 tools/factory_build_backlog.py` against the combined inventory, then
 verify with `--check`; choosing either side can discard another import’s state.

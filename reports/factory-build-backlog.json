@@ -2,28 +2,28 @@
   "areas": {
     "codecs-media": {
       "already_recipe": 10,
-      "pending": 27,
-      "total": 37
+      "pending": 25,
+      "total": 35
     },
     "dev-tools": {
       "already_recipe": 1,
-      "pending": 88,
-      "total": 89
+      "pending": 86,
+      "total": 87
     },
     "fonts-i18n": {
-      "pending": 29,
-      "total": 29
+      "pending": 24,
+      "total": 24
     },
     "gnome-apps": {
-      "already_recipe": 5,
-      "pending": 7,
-      "total": 12
+      "already_recipe": 4,
+      "pending": 6,
+      "total": 10
     },
     "long-tail": {
       "already_recipe": 12,
       "manifest_wants": 1,
-      "pending": 114,
-      "total": 127
+      "pending": 113,
+      "total": 126
     },
     "power": {
       "total": 0
@@ -32,8 +32,7 @@
       "total": 0
     },
     "ujust-deps": {
-      "pending": 1,
-      "total": 1
+      "total": 0
     },
     "unblockers": {
       "pending": 4,
@@ -128,11 +127,6 @@
     },
     {
       "area": "codecs-media",
-      "name": "libbluray",
-      "state": "pending"
-    },
-    {
-      "area": "codecs-media",
       "name": "libdc1394",
       "state": "pending"
     },
@@ -190,11 +184,6 @@
       "area": "codecs-media",
       "name": "libswscale",
       "state": "already_recipe"
-    },
-    {
-      "area": "codecs-media",
-      "name": "libudfread",
-      "state": "pending"
     },
     {
       "area": "codecs-media",
@@ -288,11 +277,6 @@
     },
     {
       "area": "dev-tools",
-      "name": "flex",
-      "state": "pending"
-    },
-    {
-      "area": "dev-tools",
       "name": "fuse-encfs",
       "state": "pending"
     },
@@ -344,11 +328,6 @@
     {
       "area": "dev-tools",
       "name": "libcaca",
-      "state": "pending"
-    },
-    {
-      "area": "dev-tools",
-      "name": "libchromaprint",
       "state": "pending"
     },
     {
@@ -748,31 +727,6 @@
     },
     {
       "area": "fonts-i18n",
-      "name": "jetbrains-mono-fonts",
-      "state": "pending"
-    },
-    {
-      "area": "fonts-i18n",
-      "name": "jetbrains-mono-fonts-all",
-      "state": "pending"
-    },
-    {
-      "area": "fonts-i18n",
-      "name": "jetbrains-mono-nl-fonts",
-      "state": "pending"
-    },
-    {
-      "area": "fonts-i18n",
-      "name": "jomolhari-fonts",
-      "state": "pending"
-    },
-    {
-      "area": "fonts-i18n",
-      "name": "julietaula-montserrat-fonts",
-      "state": "pending"
-    },
-    {
-      "area": "fonts-i18n",
       "name": "kasumi-common",
       "state": "pending"
     },
@@ -830,16 +784,6 @@
       "area": "gnome-apps",
       "name": "epiphany-runtime",
       "state": "pending"
-    },
-    {
-      "area": "gnome-apps",
-      "name": "gnome-classic-session",
-      "state": "pending"
-    },
-    {
-      "area": "gnome-apps",
-      "name": "gnome-rounded-blur",
-      "state": "already_recipe"
     },
     {
       "area": "gnome-apps",
@@ -1064,11 +1008,6 @@
     {
       "area": "long-tail",
       "name": "kyotocabinet-libs",
-      "state": "pending"
-    },
-    {
-      "area": "long-tail",
-      "name": "libXres",
       "state": "pending"
     },
     {
@@ -1522,11 +1461,6 @@
       "state": "pending"
     },
     {
-      "area": "ujust-deps",
-      "name": "glow",
-      "state": "pending"
-    },
-    {
       "area": "unblockers",
       "name": "qt6-qtdeclarative",
       "state": "pending"
@@ -1599,13 +1533,13 @@
   ],
   "issue": "projectbluefin/utah-packages#308",
   "states": {
-    "already_recipe": 28,
+    "already_recipe": 27,
     "manifest_wants": 1,
-    "pending": 280
+    "pending": 268
   },
   "totals": {
-    "backlog": 309,
-    "resolved": 218,
-    "wontfix": 24
+    "backlog": 296,
+    "resolved": 225,
+    "wontfix": 30
   }
 }

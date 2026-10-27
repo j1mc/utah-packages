@@ -196,6 +196,12 @@ packages:
     downstream_package_name: cdparanoia
     paths:
       - packages/cdparanoia
+  chromaprint:
+    specfile_path: chromaprint.spec
+    upstream_package_name: chromaprint
+    downstream_package_name: chromaprint
+    paths:
+      - packages/chromaprint
   cifs-utils:
     specfile_path: cifs-utils.spec
     upstream_package_name: cifs-utils
@@ -454,6 +460,12 @@ packages:
     downstream_package_name: flatpak-xdg-utils
     paths:
       - packages/flatpak-xdg-utils
+  flex:
+    specfile_path: flex.spec
+    upstream_package_name: flex
+    downstream_package_name: flex
+    paths:
+      - packages/flex
   flite:
     specfile_path: flite.spec
     upstream_package_name: flite
@@ -616,6 +628,12 @@ packages:
     downstream_package_name: glibmm2.68
     paths:
       - packages/glibmm2.68
+  glow:
+    specfile_path: glow.spec
+    upstream_package_name: glow
+    downstream_package_name: glow
+    paths:
+      - packages/glow
   glycin:
     specfile_path: glycin.spec
     upstream_package_name: glycin
@@ -1270,6 +1288,12 @@ packages:
     downstream_package_name: libXrandr
     paths:
       - packages/libXrandr
+  libXres:
+    specfile_path: libXres.spec
+    upstream_package_name: libXres
+    downstream_package_name: libXres
+    paths:
+      - packages/libXres
   libXt:
     specfile_path: libXt.spec
     upstream_package_name: libXt
@@ -1354,6 +1378,12 @@ packages:
     downstream_package_name: libblockdev
     paths:
       - packages/libblockdev
+  libbluray:
+    specfile_path: libbluray.spec
+    upstream_package_name: libbluray
+    downstream_package_name: libbluray
+    paths:
+      - packages/libbluray
   libbs2b:
     specfile_path: libbs2b.spec
     upstream_package_name: libbs2b
@@ -1966,6 +1996,12 @@ packages:
     downstream_package_name: libtracefs
     paths:
       - packages/libtracefs
+  libudfread:
+    specfile_path: libudfread.spec
+    upstream_package_name: libudfread
+    downstream_package_name: libudfread
+    paths:
+      - packages/libudfread
   libunibreak:
     specfile_path: libunibreak.spec
     upstream_package_name: libunibreak
